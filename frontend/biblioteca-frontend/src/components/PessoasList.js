@@ -1,36 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
+import PessoaForm from './PessoaForm'; // Importe o novo componente
 
 function PessoasList() {
   const [pessoas, setPessoas] = useState([]);
-  const [erro, setErro] = useState(null);
+  const [showForm, setShowForm] = useState(false); // Estado para controlar a visibilidade do formulário
+
+  const fetchPessoas = () => {
+    fetch('http://127.0.0.1:5000/pessoas')
+      .then((response) => response.json())
+      .then((data) => setPessoas(data))
+      .catch((error) => console.error('Erro ao buscar pessoas:', error));
+  };
 
   useEffect(() => {
-    fetch("http://localhost:5000/pessoas")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Erro ao buscar pessoas: " + res.status);
-        }
-        return res.json();
-      })
-      .then((data) => setPessoas(data))
-      .catch((err) => setErro(err.message));
+    fetchPessoas();
   }, []);
 
+  const handlePessoaCreated = (novaPessoa) => {
+    setPessoas([...pessoas, novaPessoa]); // Adiciona a nova pessoa à lista existente
+    setShowForm(false); // Esconde o formulário após a criação
+  };
+
+  const buttonStyle = {
+    padding: '10px 20px',
+    backgroundColor: '#28a745',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginBottom: '20px',
+  };
+
   return (
-    <div style={{ margin: "20px" }}>
+    <div>
       <h2>Lista de Pessoas</h2>
-      {erro && <p style={{ color: "red" }}>{erro}</p>}
-      {pessoas.length > 0 ? (
-        <ul>
-          {pessoas.map((p) => (
-            <li key={p.id}>
-              {p.nome} - {p.cpf} - {p.email} - {p.numero}
-            </li>
+      <button onClick={() => setShowForm(!showForm)} style={buttonStyle}>
+        {showForm ? 'Cancelar' : 'Adicionar Pessoa'}
+      </button>
+
+      {showForm && <PessoaForm onPessoaCreated={handlePessoaCreated} />}
+
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f2f2f2' }}>
+            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Nome</th>
+            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Email</th>
+            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>CPF</th>
+            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Tipo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pessoas.map((pessoa) => (
+            <tr key={pessoa.id}>
+              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{pessoa.nome}</td>
+              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{pessoa.email}</td>
+              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{pessoa.cpf}</td>
+              <td style={{ padding: '8px', border: '1px solid #ddd' }}>{pessoa.tipo}</td>
+            </tr>
           ))}
-        </ul>
-      ) : (
-        !erro && <p>Nenhuma pessoa encontrada.</p>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 }
